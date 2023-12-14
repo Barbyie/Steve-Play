@@ -13,3 +13,6 @@ class MusicCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+    def music-handler(self, url):
+        pass
