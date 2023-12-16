@@ -13,6 +13,18 @@ class MusicCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.is_playing = {}
+        self.is_paused = {}
+        self.musicQueue = {}
+        self.queueIndex = {}
 
-    def music-handler(self, url):
-        pass
+        self.vc = {}
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        for guild in self.bot.guilds:
+            id = int(guild.id)
+            self.musicQueue[id] = []
+            self.queueIndex[id] = 0
+            self.vc[id] = None
+            self.is_paused[id] = self.is_playing[id] = False
