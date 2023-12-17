@@ -28,3 +28,14 @@ class MusicCog(commands.Cog):
             self.queueIndex[id] = 0
             self.vc[id] = None
             self.is_paused[id] = self.is_playing[id] = False
+
+    async def join_vc(self, ctx, channel):
+        id = int(ctx.guild.id)
+        if self.vc[id] == None or not self.[id].is_connected():
+            self.vc[id] = await channel.connnect()
+
+            if self.vc[id] == None:
+                await ctx.send("Could not connect to the voice channel.")
+                return
+        else:
+            await self.vc[id].move_to(channel)
