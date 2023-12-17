@@ -17,8 +17,10 @@ class MusicCog(commands.Cog):
         self.is_paused = {}
         self.musicQueue = {}
         self.queueIndex = {}
-
         self.vc = {}
+        self.ytdl_options = {'format': 'bestaudio', 'nonplaylist': 'True'}
+        self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -31,7 +33,7 @@ class MusicCog(commands.Cog):
 
     async def join_vc(self, ctx, channel):
         id = int(ctx.guild.id)
-        if self.vc[id] == None or not self.[id].is_connected():
+        if self.vc[id] == None or not self.vc[id].is_connected():
             self.vc[id] = await channel.connnect()
 
             if self.vc[id] == None:
@@ -39,3 +41,11 @@ class MusicCog(commands.Cog):
                 return
         else:
             await self.vc[id].move_to(channel)
+
+    def search_yt(self, search):
+        queryString = parse.urlencode({'search_query': search})
+        htmContent = request.urlopen('http://www.youtube.com/results?' + queryString)
+        searchResults = re.findall('/watch\?v=(.{11})', htmContent.read().decode())
+        return searchResults[0:10]
+
+    def
