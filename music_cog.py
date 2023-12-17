@@ -60,3 +60,47 @@ class MusicCog(commands.Cog):
             'source': info['formats'][0]['url'],
             'title': info['title']
         }
+
+    def play_next(self, ctx):
+        id = int(ctx.guild.id)
+        if not self.is_playing[id]:
+            return
+        if self.queueIndex[id] + 1 < len(self.musicQueue[id]):
+            self.is_playing[id] = True
+            self.queueIndex[id] += 1
+
+            song = self.musicQueue[id][self.queueIndex[id]][0]
+            message = "Message"
+            coro = ctx.send(message)
+            fut = run_coroutine_threadsafe(coro, self.bot.loop)
+            try:
+                fut.result()
+            except:
+                pass
+
+            self.vc[id].play(discord.FFmpegPCMAudio(
+                song['source'], **self.ffmpeg_options), after=lambda e: self.play_next(ctx))
+        else:
+            self.queueIndex[id] += 1
+            self.is_playing[id] = False
+
+    async def play_music(self, ctx):
+        id = int(ctx.guild.id)
+        if self.queueIndex[id] < len(self.musicQueue[id]):
+            self.is_playing[id] = True
+            self.is_paused[id] = False
+
+            await self.join_vc(ctx, self.musicQueue[id][self.queueIndex[id]][1])
+
+            song = self.musicQueue[id][self.queueIndex[id]][0]
+            message = "Message"
+            await ctx.send(message)
+            await ctx.send(ctx, "and", id)
+
+            self.vc[id].play(discord.FFmpegPCMAudio(
+                song['source'], **self.ffmpeg_options), after=lambda e: self.play_next(ctx))
+        else:
+            await ctx.send("There are no songs in the queue to be played.")
+            self.queueIndex[id] += 1
+            self.is_playing = False
+
