@@ -48,4 +48,15 @@ class MusicCog(commands.Cog):
         searchResults = re.findall('/watch\?v=(.{11})', htmContent.read().decode())
         return searchResults[0:10]
 
-    def
+    def extract_yt(self, url):
+        with YoutubeDL(self.ytdl_options) as ydl:
+            try:
+                info = ydl.extract_info(url, download=False)
+            except:
+                return False
+        return {
+            'link': 'https://www.youtube.com/watch?v=' + url,
+            'thumbnail': 'https://i.ytimg.com/vi/' + url + '/hqdefault.jpg?sqp=-oaymwEcCOADEI4CSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLD5uL4xKN-IUfez6KIW_j5y70mlig',
+            'source': info['formats'][0]['url'],
+            'title': info['title']
+        }
