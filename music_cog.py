@@ -20,7 +20,9 @@ class MusicCog(commands.Cog):
         self.vc = {}
         self.ytdl_options = {'format': 'bestaudio', 'nonplaylist': 'True'}
         self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-
+        self.embedBlue = 0x2c76dd
+        self.embedRed = 0xdf1141
+        self.embedGreen = 0x0eaa51
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -31,6 +33,21 @@ class MusicCog(commands.Cog):
             self.vc[id] = None
             self.is_paused[id] = self.is_playing[id] = False
 
+    def now_playing_embed(self, ctx, song):
+        title = song['title']
+        link = song['link']
+        thumbnail = song['thumbnail']
+        author = ctx.author
+        avatar = author.avatar_url
+
+        embed = discord.Embed(
+            title="Now Playing",
+            description=f'[{title}]({link})',
+            colour=self.embedBlue
+        )
+        embed.set_thumbnail(url=thumbnail)
+        embed.set_footer(text=f'Song added by: {str(author)}', icon_url=avatar)
+        return embed
     async def join_vc(self, ctx, channel):
         id = int(ctx.guild.id)
         if self.vc[id] == None or not self.vc[id].is_connected():
