@@ -87,8 +87,8 @@ class MusicCog(commands.Cog):
             self.queueIndex[id] += 1
 
             song = self.musicQueue[id][self.queueIndex[id]][0]
-            message = "Message"
-            coro = ctx.send(message)
+            message = self.now_playing_embed(ctx, song)
+            coro = ctx.send(embed=message)
             fut = run_coroutine_threadsafe(coro, self.bot.loop)
             try:
                 fut.result()
@@ -110,9 +110,9 @@ class MusicCog(commands.Cog):
             await self.join_vc(ctx, self.musicQueue[id][self.queueIndex[id]][1])
 
             song = self.musicQueue[id][self.queueIndex[id]][0]
-            message = "Message"
-            await ctx.send(message)
-            await ctx.send(ctx, "and", id)
+            message = self.now_playing_embed(ctx, song)
+            await ctx.send(embed=message)
+            await ctx.send(ctx)
 
             self.vc[id].play(discord.FFmpegPCMAudio(
                 song['source'], **self.ffmpeg_options), after=lambda e: self.play_next(ctx))
@@ -121,3 +121,16 @@ class MusicCog(commands.Cog):
             self.queueIndex[id] += 1
             self.is_playing = False
 
+    @ commands.command(
+        name="join",
+        aliases=["j"],
+        help=""
+    )
+
+    async def join(self, ctx):
+        if ctx.author.voice:
+            userChannel = ctx.author.voice.channel
+            await self.join_vc(ctx, userChannel)
+            await ctx.send(f'Steve has joined {userChannel}')
+        else:
+            await ctx.send("You need to be connected to a voice channel.")
