@@ -51,7 +51,7 @@ class MusicCog(commands.Cog):
     async def join_vc(self, ctx, channel):
         id = int(ctx.guild.id)
         if self.vc[id] == None or not self.vc[id].is_connected():
-            self.vc[id] = await channel.connnect()
+            self.vc[id] = await channel.connect()
 
             if self.vc[id] == None:
                 await ctx.send("Could not connect to the voice channel.")
@@ -134,3 +134,18 @@ class MusicCog(commands.Cog):
             await ctx.send(f'Steve has joined {userChannel}')
         else:
             await ctx.send("You need to be connected to a voice channel.")
+
+    @ commands.command(
+        name="leave",
+        aliases=["l"],
+        help=""
+    )
+
+    async def leave(self, ctx):
+        id = int(ctx.guild.id)
+        self.is_playing[id] = self.is_paused[id] = False
+        self.musicQueue[id] = []
+        self.queueIndex[id] = 0
+        if self.vc[id] != None:
+            await ctx.send("Steve has left the channel.")
+            await self.vc[id].disconnect()
