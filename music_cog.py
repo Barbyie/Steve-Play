@@ -1,6 +1,7 @@
 import discord
 from discord_components import Select, SelectOption, Button
 from discord.ext import commands
+from discord.ext.commands import Bot
 import asyncio
 from asyncio import run_coroutine_threadsafe
 from urllib import parse, request
@@ -8,6 +9,7 @@ import re
 import json
 import os
 from youtube_dl import YoutubeDL
+import nacl
 
 class MusicCog(commands.Cog):
 
@@ -48,10 +50,15 @@ class MusicCog(commands.Cog):
         embed.set_thumbnail(url=thumbnail)
         embed.set_footer(text=f'Song added by: {str(author)}', icon_url=avatar)
         return embed
+
     async def join_vc(self, ctx, channel):
         id = int(ctx.guild.id)
+        print(f"self.vc[{id}] before connection: {self.vc[id]}")  # Print statement added
+
         if self.vc[id] == None or not self.vc[id].is_connected():
             self.vc[id] = await channel.connect()
+
+            print(f"self.vc[{id}] after connection: {self.vc[id]}")  # Print statement added
 
             if self.vc[id] == None:
                 await ctx.send("Could not connect to the voice channel.")
@@ -135,17 +142,15 @@ class MusicCog(commands.Cog):
         else:
             await ctx.send("You need to be connected to a voice channel.")
 
-    @ commands.command(
-        name="leave",
-        aliases=["l"],
-        help=""
-    )
+    @client.command(name = "leave",
+                    pass_context = True)
 
     async def leave(self, ctx):
         id = int(ctx.guild.id)
         self.is_playing[id] = self.is_paused[id] = False
         self.musicQueue[id] = []
         self.queueIndex[id] = 0
-        if self.vc[id] != None:
-            await ctx.send("Steve has left the channel.")
-            await self.vc[id].disconnect()
+        voice_client = client.voice_client_in(ctx.message.server)
+        if voice_client:
+            await voice_client.disconnect()
+            await ctx.send("Bot left the voice channel")
