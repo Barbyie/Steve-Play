@@ -61,6 +61,22 @@ async def leave(ctx):
     else:
         await ctx.send("Steve is not in a voice channel")
 
+@client.command(pass_context=True)
+async def pause(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_playing():
+        voice.pause()
+    else:
+        await ctx.send("Steve is not playing any audio.")
+
+@client.command(pass_context=True)
+async def resume(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_paused():
+        voice.resume()
+    else:
+        await ctx.send("Steve did not find any audio currently paused.")
+
 client.run(token)
 
 
