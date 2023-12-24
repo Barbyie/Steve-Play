@@ -21,6 +21,7 @@ async def on_ready():
                     break
                 except discord.Forbidden:
                     pass
+    print("Bot is ready")
 @client.command()
 async def hello(ctx):
     await ctx.send("Testing Steve.")
@@ -31,6 +32,29 @@ async def on_member_join(member):
         await join_channel.send(f"Have a nice stay, good luck {member.mention}!")
     else:
         print("No suitable channel found for join messages.")
+
+@client.event
+async def on_member_remove(member):
+    if join_channel:
+        await join_channel.send(f"You will not be missed {member.mention}.")
+    else:
+        print("No suitable channel found for remove messages.")
+
+@client.command(pass_context=True)
+async def join(ctx):
+    if (ctx.author.voice):
+        channel = ctx.message.author.voice.channel
+        await channel.connect()
+    else:
+        await ctx.send("You are not in a voice channel.")
+
+@client.command(pass_context=True)
+async def leave(ctx):
+    if (ctx.voice_client):
+        await ctx.guild.voice_client.disconnect(force=True)
+        await ctx.send("Steve left the voice channel.")
+    else:
+        await ctx.send("Steve is not in a voice channel")
 
 client.run(token)
 
