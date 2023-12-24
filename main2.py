@@ -1,5 +1,7 @@
 import discord
 from discord.ext import commands
+from discord import FFmpegPCMAudio
+import os
 
 intents = discord.Intents.default()
 intents.members = True
@@ -24,8 +26,7 @@ async def on_ready():
     print("Bot is ready")
 @client.command()
 async def hello(ctx):
-    await ctx.send("Testing Steve.")
-
+    await ctx.send(os.path.dirname(os.path.abspath(__file__)))
 @client.event
 async def on_member_join(member):
     if join_channel:
@@ -44,7 +45,11 @@ async def on_member_remove(member):
 async def join(ctx):
     if (ctx.author.voice):
         channel = ctx.message.author.voice.channel
-        await channel.connect()
+        voice = await channel.connect()
+        file = os.path.dirname(os.path.abspath(__file__))
+        source = FFmpegPCMAudio(f"{file}/lean.mp3")
+        player = voice.play(source)
+
     else:
         await ctx.send("You are not in a voice channel.")
 
