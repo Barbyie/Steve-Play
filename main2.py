@@ -77,6 +77,11 @@ async def resume(ctx):
     else:
         await ctx.send("Steve did not find any audio currently paused.")
 
+@client.command(pass_context=True)
+async def stop(ctx):
+    voice = discord.utils.get(client.voice_clients, guild= ctx.guild)
+    voice.stop()
+
 client.run(token)
 
 
