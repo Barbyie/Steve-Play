@@ -4,31 +4,35 @@ from discord import FFmpegPCMAudio
 import os
 
 intents = discord.Intents.default()
-intents.members = True
+intents.voice_states = True
+intents.members = True  # Intent correction
 
-client = commands.Bot(command_prefix= '!', intents=intents)
+client = commands.Bot(command_prefix='!', intents=intents)
 
 with open('token.txt', 'r') as file:
     token = file.readline()
 
+def find_join_channel(guild):
+    for channel in guild.text_channels:
+        if channel.permissions_for(guild.me).send_messages and channel.permissions_for(guild.me).view_audit_log:
+            return channel
+    return None
+
+def is_connected(ctx):
+    voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
+    return voice_client and voice_client.is_connected()
+
 @client.event
 async def on_ready():
-    global join_channel
+    print(f"Bot is ready as {client}")
 
-    for guild in client.guilds:
-        for channel in guild.text_channels:
-            if channel.permissions_for(guild.me).send_messages and channel.permissions_for(guild.me).view_audit_log:
-                try:
-                    join_channel = channel
-                    break
-                except discord.Forbidden:
-                    pass
-    print("Bot is ready")
 @client.command()
 async def hello(ctx):
     await ctx.send(os.path.dirname(os.path.abspath(__file__)))
+
 @client.event
 async def on_member_join(member):
+    join_channel = find_join_channel(member.guild)  # Find channel locally
     if join_channel:
         await join_channel.send(f"Have a nice stay, good luck {member.mention}!")
     else:
@@ -36,6 +40,7 @@ async def on_member_join(member):
 
 @client.event
 async def on_member_remove(member):
+    join_channel = find_join_channel(member.guild)  # Find channel locally
     if join_channel:
         await join_channel.send(f"You will not be missed {member.mention}.")
     else:
@@ -49,14 +54,13 @@ async def join(ctx):
         file = os.path.dirname(os.path.abspath(__file__))
         source = FFmpegPCMAudio(f"{file}/lean.mp3")
         player = voice.play(source)
-
     else:
         await ctx.send("You are not in a voice channel.")
 
 @client.command(pass_context=True)
 async def leave(ctx):
-    if (ctx.voice_client):
-        await ctx.guild.voice_client.disconnect(force=True)
+    if ctx.voice_client:
+        await ctx.guild.voice_client.disconnect()
         await ctx.send("Steve left the voice channel.")
     else:
         await ctx.send("Steve is not in a voice channel")
@@ -82,8 +86,18 @@ async def stop(ctx):
     voice = discord.utils.get(client.voice_clients, guild= ctx.guild)
     voice.stop()
 
+@client.command(pass_context=True)
+async def play(ctx):
+    if ctx.author.voice:
+        channel = ctx.message.author.voice.channel
+        print(is_connected(ctx))
+        if is_connected(ctx) != True:
+            voice = await channel.connect()
+        else:
+            voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+
+    file = os.path.dirname(os.path.abspath(__file__))
+    source = FFmpegPCMAudio(f"{file}/lean.mp3")
+    player = voice.play(source)
+
 client.run(token)
-
-
-
-
