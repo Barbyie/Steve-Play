@@ -5,13 +5,19 @@ import os
 
 intents = discord.Intents.default()
 intents.voice_states = True
-intents.members = True  # Intent correction
+intents.members = True
+queues = {}
 
 client = commands.Bot(command_prefix='!', intents=intents)
 
 with open('token.txt', 'r') as file:
     token = file.readline()
 
+def check_queue(ctx, id):
+    if queues[id] != []:
+        voice = ctx.guild.voice_client
+        source = queues[id].pop(0)
+        player = voice.play(source)
 def find_join_channel(guild):
     for channel in guild.text_channels:
         if channel.permissions_for(guild.me).send_messages and channel.permissions_for(guild.me).view_audit_log:
@@ -87,7 +93,7 @@ async def stop(ctx):
     voice.stop()
 
 @client.command(pass_context=True)
-async def play(ctx):
+async def play(ctx, arg):
     if ctx.author.voice:
         channel = ctx.message.author.voice.channel
         print(is_connected(ctx))
@@ -97,7 +103,21 @@ async def play(ctx):
             voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
 
     file = os.path.dirname(os.path.abspath(__file__))
-    source = FFmpegPCMAudio(f"{file}/lean.mp3")
-    player = voice.play(source)
+    source = FFmpegPCMAudio(f"{file}/{arg}.mp3")
+    player = voice.play(source, after=lambda x=None: check_queue(ctx, ctx.message.guild.id))
+
+@client.command(pass_context=True)
+async def queue(ctx, arg):
+    voice = ctx.guild.voice_client
+    file = os.path.dirname(os.path.abspath(__file__))
+    source = FFmpegPCMAudio(f"{file}/{arg}.mp3")
+    guild_id = ctx.message.guild.id
+    if guild_id in queues:
+        queues[guild_id].append(source)
+
+    else:
+        queues[guild_id] = [source]
+
+    await ctx.send("Song added to the queue.")
 
 client.run(token)
