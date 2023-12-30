@@ -30,7 +30,8 @@ def is_connected(ctx):
 
 @client.event
 async def on_ready():
-    print(f"Bot is ready as {client}")
+    print(f"Bot is ready")
+    await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="a bunch of songs"))
 
 @client.command()
 async def hello(ctx):
