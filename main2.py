@@ -161,6 +161,15 @@ async def queue(ctx, *, query):
         # If not currently playing, start playing the next in queue
         await check_queue(ctx, guild_id)
 
+@client.command(pass_context=True)
+async def skip(ctx):
+    voice = nextcord.utils.get(client.voice_clients, guild=ctx.guild)
+
+    if voice and voice.is_playing():
+        voice.stop()
+        await ctx.send("Skipped the current song. Playing next song in the queue.")
+    else:
+        await ctx.send("There is no song currently playing.")
 
 
 client.run(token)
