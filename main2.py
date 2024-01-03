@@ -67,9 +67,7 @@ async def join(ctx):
     if (ctx.author.voice):
         channel = ctx.message.author.voice.channel
         voice = await channel.connect()
-        file = os.path.dirname(os.path.abspath(__file__))
-        source = FFmpegPCMAudio(f"{file}/song.mp3")
-        player = voice.play(source)
+
     else:
         await ctx.send("You are not in a voice channel.")
 
@@ -107,11 +105,11 @@ async def play(ctx, *, query):
     ydl_opts = {'format': 'bestaudio/best', 'noplaylist': 'True'}
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         try:
-            info = ydl.extract_info("ytsearch:{}".format(query), download=True)
+            info = ydl.extract_info("ytsearch:{}".format(query), download=False)
             url = info['entries'][0]['url']  # Use the first result
 
             # Extract audio using youtube-dl
-            info = ydl.extract_info(url, download=True)
+            info = ydl.extract_info(url, download=False)
             source = FFmpegPCMAudio(info['url'])
         except Exception as e:
             print(e)
