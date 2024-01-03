@@ -16,17 +16,15 @@ with open('token.txt', 'r') as file:
     token = file.readline()
 
 async def check_queue(ctx, guild_id):
-    if queues[guild_id] is not None and queues[guild_id]:
-        voice = nextcord.utils.get(client.voice_clients, guild=ctx.guild)
-        if voice is not None and voice.is_playing():
-            return
+    if queues[guild_id] and not ctx.voice_client.is_playing():
+        source = queues[guild_id].pop(0)
 
-        source = queues[guild_id].pop(0)  # Retrieve the next source from the queue
         try:
-            player = voice.play(source, after=lambda x=None: check_queue(ctx, guild_id))
-            await ctx.send(f"Playing **{source.title}**")  # Assuming source has a `title` attribute
+            player = ctx.voice_client.play(source, after=lambda x=None: check_queue(ctx, guild_id))
+            await ctx.send(f"Playing **{source.title}**")
         except Exception as e:
             await ctx.send("An error occurred while playing the audio: {}".format(e))
+
 
 def find_join_channel(guild):
     for channel in guild.text_channels:
@@ -109,11 +107,11 @@ async def play(ctx, *, query):
     ydl_opts = {'format': 'bestaudio/best', 'noplaylist': 'True'}
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         try:
-            info = ydl.extract_info("ytsearch:{}".format(query), download=False)
+            info = ydl.extract_info("ytsearch:{}".format(query), download=True)
             url = info['entries'][0]['url']  # Use the first result
 
             # Extract audio using youtube-dl
-            info = ydl.extract_info(url, download=False)
+            info = ydl.extract_info(url, download=True)
             source = FFmpegPCMAudio(info['url'])
         except Exception as e:
             print(e)
@@ -134,7 +132,35 @@ async def play(ctx, *, query):
             player = voice.play(source, after=lambda x=None: check_queue(ctx, guild_id))
             await ctx.send(f"Playing **{query}**")
         except Exception as e:
-            await ctx.send("An error occurred while playing the audio: {}".format(e))
+            print("An error occurred while playing the audio: {}".format(e))
+
+
+@client.command(pass_context=True)
+async def queue(ctx, *, query):
+    guild_id = ctx.message.guild.id
+
+    if guild_id not in queues:
+        queues[guild_id] = []
+
+    ydl_opts = {'format': 'bestaudio/best', 'noplaylist': 'True'}
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info("ytsearch:{}".format(query), download=False)
+            url = info['entries'][0]['url']  # Use the first result
+
+            # Extract audio using youtube-dl
+            info = ydl.extract_info(url, download=False)
+            source = FFmpegPCMAudio(info['url'])
+        except Exception as e:
+            print(e)
+            return
+
+        queues[guild_id].append(source)
+        await ctx.send(f"Added **{query}** to the queue. Position in queue: {len(queues[guild_id]) - 1}")
+
+        # If not currently playing, start playing the next in queue
+        await check_queue(ctx, guild_id)
+
 
 
 client.run(token)
