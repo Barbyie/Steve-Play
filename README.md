@@ -2,7 +2,7 @@
 
 - Sometime in 2022, music bots stopped working on Discord, making pretty much every server lifeless without music.
 - Eventually, I decided to build my own, because why not ?
-- So here is my Discord bot with some pretty cool messages when people join or leave, and that allow you to play audio from that famous website that starts with Y.
+- So here is my Discord bot with some pretty cool messages when people join or leave, and that allows you to play audio from that famous website that starts with Y.
 
 
 # How to use ?
